@@ -1,16 +1,13 @@
 import carla
 import time
-
-import carla
 import random
-import time
-
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 world = client.get_world()
 
 blueprint_library = world.get_blueprint_library()
+
 # Get all vehicle blueprints
 vehicle_blueprints = blueprint_library.filter('vehicle.*')
 
@@ -19,8 +16,9 @@ spawn_points = world.get_map().get_spawn_points()
 
 number_of_vehicles = 10
 
-# Shuffle the spawn points so we get random positions
+# Shuffle the spawn points for random positions
 random.shuffle(spawn_points)
+vehicles_list = []
 
 for i in range(number_of_vehicles):
     bp = random.choice(vehicle_blueprints)
@@ -29,6 +27,7 @@ for i in range(number_of_vehicles):
     vehicle = world.try_spawn_actor(bp, spawn_point)
     if vehicle:
         vehicle.set_autopilot(True)
+        vehicles_list.append(vehicle)
         print(f"Spawned vehicle {vehicle.type_id} at {spawn_point.location}")
     else:
         print(f"Failed to spawn vehicle at {spawn_point.location}")
