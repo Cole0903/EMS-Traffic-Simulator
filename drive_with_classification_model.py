@@ -73,9 +73,7 @@ def main():
     vehicle_bp = blueprint_library.find('vehicle.ambulance.ford')
     spawn_point = world.get_map().get_spawn_points()[0]
     vehicle = world.spawn_actor(vehicle_bp, spawn_point)
-
-    # Use the correct agent initialization
-    vehicle.set_autopilot(True)  # Initialize the correct agent
+    vehicle.set_autopilot(True)
 
     # set up rgb camera sensor
     camera_bp = blueprint_library.find('sensor.camera.rgb')
