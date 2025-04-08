@@ -1,2 +1,6 @@
-# EMS-Traffic-Simulator
-FAU Class ED2 spring 4 group members Thomas Cargill, Jordan Sarig, Cole Narbonne, Zafar Bacchus
+# Traffic Intersection Simulation
+### FAU EGN4952C-001 Group 10 Project
+##### Members: Thomas Cargill, Jordan Sarig, Cole Narbonne, Zafar Bacchus
+
+##### Summary
+This project aims to 
