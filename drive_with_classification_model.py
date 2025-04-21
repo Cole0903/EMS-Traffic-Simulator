@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import cv2
 from ultralytics import YOLO
-
+import csv
 
 # Yolov12 provided by Ultralytics
 '''
@@ -57,11 +57,24 @@ screen = pygame.display.set_mode((640, 600))
 pygame.display.set_caption("YOLOv12m object detection")
 
 def main():
+    global frame_count
     frame_count = 0
+    
+    csv_file = open('detection_data.csv', 'w', newline='')
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow([
+    'frame_number', 'timestamp', 'class', 'confidence', 
+    'x1', 'y1', 'x2', 'y2', 'speed_kmh', 'location_x', 
+    'location_y', 'location_z', 'velocity_x', 'velocity_y', 
+    'velocity_z', 'resolution'  # 16 columns total
+])
+    
     client = carla.Client('192.168.1.124', 2000)
     client.set_timeout(10.0)
     world = client.get_world()
-
+    tm = client.get_trafficmanager()
+    tm.set_synchronous_mode(True)
+    tm.set_random_device_seed(0)
     # set sync mode
     settings = world.get_settings()
     settings.synchronous_mode = True
@@ -72,13 +85,14 @@ def main():
     blueprint_library = world.get_blueprint_library()
     vehicle_bp = blueprint_library.find('vehicle.ambulance.ford')
     spawn_point = world.get_map().get_spawn_points()[0]
+    print(world.get_map().get_spawn_points())
     vehicle = world.spawn_actor(vehicle_bp, spawn_point)
-    vehicle.set_autopilot(True)
+    vehicle.set_autopilot(True, tm.get_port())
 
     # set up rgb camera sensor
     camera_bp = blueprint_library.find('sensor.camera.rgb')
-    camera_bp.set_attribute('image_size_x', '640')
-    camera_bp.set_attribute('image_size_y', '640')
+    camera_bp.set_attribute('image_size_x', '320')
+    camera_bp.set_attribute('image_size_y', '320')
 
     camera = world.spawn_actor(
         camera_bp,
@@ -89,57 +103,67 @@ def main():
     latest_surface = None
 
     def camera_callback(image):
-        # if frame_count % 5 == 0:
-            nonlocal latest_surface
-            # convert raw image data to numpy array
+        global frame_count, current_resolution
+        nonlocal latest_surface
+        current_resolution = 320
+        if frame_count % 4 == 0:
             array = np.frombuffer(image.raw_data, dtype=np.uint8)
             array = array.reshape((image.height, image.width, 4))[:, :, :3]
-
-            # convert array to RGB for YOLO
             img = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
 
-            # yolov12 inference
-            results = list(model(img, imgsz=640, stream=True))  # Convert generator to list
+            results = list(model(img, imgsz=current_resolution, stream=True, conf=0.5))
             
             if results:
                 result = results[0]
+                vehicle_location = vehicle.get_transform().location
+                vehicle_velocity = vehicle.get_velocity()
+                speed_kmh = 3.6 * vehicle_velocity.length()
+
+                for box in result.boxes:
+                    x1, y1, x2, y2 = box.xyxy[0].tolist()
+                    conf = box.conf.item()
+                    cls = box.cls.item()
+                    label = result.names[int(cls)]
+                    
+                    csv_writer.writerow([
+                        image.frame,
+                        image.timestamp,
+                        label,
+                        conf,
+                        x1,  
+                        y1,  
+                        x2,  
+                        y2,  
+                        speed_kmh,
+                        vehicle_location.x,
+                        vehicle_location.y,
+                        vehicle_location.z,
+                        vehicle_velocity.x,
+                        vehicle_velocity.y,
+                        vehicle_velocity.z,
+                        current_resolution
+                    ])
+
                 rendered_img = result.plot()
                 
-                # bgr to rgb
                 rendered_img = cv2.cvtColor(rendered_img, cv2.COLOR_BGR2RGB)
-                rendered_img = cv2.resize(rendered_img, (640, 600))  # Resize to fit display
+                rendered_img = cv2.resize(rendered_img, (640, 600))
                 
                 # update pygame surface
                 surface = pygame.surfarray.make_surface(rendered_img.swapaxes(0, 1))
                 latest_surface = surface
-        
+
+        frame_count += 1
+
     camera.listen(camera_callback)
 
-    def get_random_destination():
-        spawn_points = world.get_map().get_spawn_points()
-        return random.choice(spawn_points).location
-        
-    
-    
     try:
         clock = pygame.time.Clock()
         while True:
             # carla tick world by 1 frame
             world.tick()
-            frame_count += 1
             clock.tick(20)
-            
-            '''if agent.done():
-                # makes ambulance loop infinitely by finding a new destination once the current one is reached
-                print("Destination reached. Setting new destination.")
-                destination = get_random_destination()
-                agent.set_destination(destination)
-                print(f"New destination set to: {destination}")
-            
 
-            control = agent.run_step()
-            vehicle.apply_control(control)
-            '''
             for event in pygame.event.get():
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                     raise KeyboardInterrupt
@@ -151,6 +175,7 @@ def main():
 
     finally:
         #  destroy objects
+        csv_file.close()
         camera.destroy()
         vehicle.destroy()
         settings.synchronous_mode = False
