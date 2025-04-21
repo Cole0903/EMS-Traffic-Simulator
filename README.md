@@ -1,10 +1,10 @@
 # Traffic Intersection Simulation
 ### FAU EGN4952C-001 Group 10 Project
 ##### Members: 
-Thomas Cargill (tcargill2021@fau.edu)
-Jordan Sarig (jsarig2021@fau.edu)
-Cole Narbonne (cnarbonne2021@fau.edu)
-Zafar Bacchus (zbacchus2022@fau.edu)
+Thomas Cargill (tcargill2021@fau.edu)  
+Jordan Sarig (jsarig2021@fau.edu)  
+Cole Narbonne (cnarbonne2021@fau.edu)  
+Zafar Bacchus (zbacchus2022@fau.edu)  
 
 ##### Summary/Motivation
 This project aims to create a realistic simulation of the passage of autonomous vehicles through traffic intersections. With the rising prevalence of AI-driven vehicles, it has become increasingly important to develop and test algorithms that ensure their functionality and safety. Thus, Florida Atlantic University has requested a proposal from our group for a software-based simulation of autonomous vehicles driving through traffic intersections in the presence of other vehicles and pedestrians.
