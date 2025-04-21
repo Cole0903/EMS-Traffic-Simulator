@@ -14,3 +14,9 @@ In order to complete the task specified above, our group has used the CARLA simu
 
 ##### Figures
 The following figures display the correlations between the detection model's confidence rating and various factors in the simulation, including resolution, speed, and the class of object being detected.
+
+![alt text](https://github.com/Cole0903/EMS-Traffic-Simulator/blob/main/Figures/Class-Specific%20Confidence%20Distributions.png "Class Specific Confidence Distributions")
+
+![alt text](https://github.com/Cole0903/EMS-Traffic-Simulator/blob/main/Figures/Confidence%20Distribution%20Across%20Speed%20Ranges.png "Confidence Distribution Across Speed Ranges (km/h)")
+
+![alt text](https://github.com/Cole0903/EMS-Traffic-Simulator/blob/main/Figures/Overall%20Confidence%20Distribution%20by%20Resolution.png "Overall Confidence Distribution by Resolution")
